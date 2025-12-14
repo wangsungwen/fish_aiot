@@ -16,7 +16,8 @@
 8. [疑難排解](https://www.google.com/search?q=%23%E7%96%91%E9%9B%A3%E6%8E%92%E8%A7%A3)
 
 
-## 🏗️ 系統架構```mermaid
+## 🏗️ 系統架構
+```mermaid
 graph TD
     subgraph "感測層 (Sensors & Actuators)"
         Temp[溫度感測器] --> ESP32
@@ -44,18 +45,22 @@ graph TD
         User[使用者裝置 (手機/電腦)] --Internet--> Ngrok[Ngrok Tunnel]
         Ngrok --> RPi
     end
-
+```
 
 ## 🛠️ 硬體需求
-### 核心控制* **Raspberry Pi 4 Model B** (建議 4GB RAM 以上): 作為中央伺服器、MQTT Broker 及網頁主機。
+### 核心控制
+* ** Raspberry Pi 4 Model B
+* ** (建議 4GB RAM 以上): 作為中央伺服器、MQTT Broker 及網頁主機。
 
-### 微控制器* **ESP-32S DevKit V1**: 負責連接多種感測器並上傳數據。
-* **NodeMCU V3 (ESP8266)**: 負責控制繼電器（馬達、加熱棒等）。
+### 微控制器
+* ** ESP-32S DevKit V1* ** :負責連接多種感測器並上傳數據。
+* ** NodeMCU V3 (ESP8266)* ** :負責控制繼電器（馬達、加熱棒等）。
 
-### 感測器與模組* **DS18B20** 防水溫度感測器。
-* **TDS 水質檢測模組** (類比訊號)。
-* **pH 酸鹼值檢測模組** (類比訊號)。
-* **水位感測器** (類比或數位)。
+### 感測器與模組
+* ** DS18B20** 防水溫度感測器。
+* ** TDS 水質檢測模組** (類比訊號)。
+* ** pH 酸鹼值檢測模組** (類比訊號)。
+* ** 水位感測器** (類比或數位)。
 * **繼電器模組** (Relay Module, 建議 3路以上)。
 
 > **⚠️ 接線注意：**
@@ -206,6 +211,7 @@ Ngrok 啟動後，終端機介面會顯示一個 `Forwarding` 的網址 (例如 
 
 
 * ** Ngrok 網址無法訪問**: Ngrok 免費版的網址每次啟動都會改變，請確認使用了最新的網址。確保 Flask 伺服器正在執行且沒有報錯。
+
 
 
 
