@@ -1,8 +1,8 @@
-#AIoT 智慧魚菜共生系統 (AIoT Fish & Veg System)這是一個整合了物聯網技術的智慧魚菜共生監控與控制系統。系統以樹莓派 (Raspberry Pi) 為中央伺服器，透過 ESP32 與 ESP8266 微控制器收集環境數據（溫度、pH 值、TDS、水位等）並控制致動器（馬達、加溫棒）。數據透過 MQTT 協定傳輸，並整合 ThingSpeak 雲端平台進行資料視覺化，最後透過 Flask 網頁介面提供即時監控與控制功能，並利用 Ngrok 實現遠端訪問。
+# AIoT 智慧魚菜共生系統 (AIoT Fish & Veg System)這是一個整合了物聯網技術的智慧魚菜共生監控與控制系統。系統以樹莓派 (Raspberry Pi) 為中央伺服器，透過 ESP32 與 ESP8266 微控制器收集環境數據（溫度、pH 值、TDS、水位等）並控制致動器（馬達、加溫棒）。數據透過 MQTT 協定傳輸，並整合 ThingSpeak 雲端平台進行資料視覺化，最後透過 Flask 網頁介面提供即時監控與控制功能，並利用 Ngrok 實現遠端訪問。
 
 ---
 
-##📖 目錄1. [系統架構](https://www.google.com/search?q=%23%E7%B3%BB%E7%B5%B1%E6%9E%B6%E6%A7%8B)
+## 📖 目錄1. [系統架構](https://www.google.com/search?q=%23%E7%B3%BB%E7%B5%B1%E6%9E%B6%E6%A7%8B)
 2. [硬體需求](https://www.google.com/search?q=%23%E7%A1%AC%E9%AB%94%E9%9C%80%E6%B1%82)
 3. [軟體準備](https://www.google.com/search?q=%23%E8%BB%9F%E9%AB%94%E6%BA%96%E5%82%99)
 4. [樹莓派伺服器架設 (Raspberry Pi Setup)](https://www.google.com/search?q=%23%E6%A8%B9%E8%8E%93%E6%B4%BE%E4%BC%BA%E6%9C%8D%E5%99%A8%E6%9E%B6%E8%A8%AD-raspberry-pi-setup)
@@ -13,7 +13,7 @@
 
 ---
 
-##🏗️ 系統架構```mermaid
+## 🏗️ 系統架構```mermaid
 graph TD
     subgraph "感測層 (Sensors & Actuators)"
         Temp[溫度感測器] --> ESP32
@@ -46,7 +46,7 @@ graph TD
 
 ---
 
-##🛠️ 硬體需求###核心控制* **Raspberry Pi 4 Model B** (建議 4GB RAM 以上): 作為中央伺服器、MQTT Broker 及網頁主機。
+## 🛠️ 硬體需求###核心控制* **Raspberry Pi 4 Model B** (建議 4GB RAM 以上): 作為中央伺服器、MQTT Broker 及網頁主機。
 
 ###微控制器* **ESP-32S DevKit V1**: 負責連接多種感測器並上傳數據。
 * **NodeMCU V3 (ESP8266)**: 負責控制繼電器（馬達、加熱棒等）。
@@ -62,7 +62,7 @@ graph TD
 
 ---
 
-##💻 軟體準備在開始之前，請確保您已準備好以下軟體環境：
+## 💻 軟體準備在開始之前，請確保您已準備好以下軟體環境：
 
 1. **Raspberry Pi OS (64-bit)**: 已安裝並設定好網路連線。
 2. **Arduino IDE**: 用於燒錄程式碼至 ESP32/ESP8266。
@@ -71,7 +71,7 @@ graph TD
 
 ---
 
-##🚀 樹莓派伺服器架設 (Raspberry Pi Setup)請依序在樹莓派終端機執行以下步驟。
+## 🚀 樹莓派伺服器架設 (Raspberry Pi Setup)請依序在樹莓派終端機執行以下步驟。
 
 ###步驟 1: 更新系統與安裝基礎套件更新套件列表並安裝必要的系統工具、Python 3、pip 以及 OpenCV 所需的依賴庫。
 
@@ -85,7 +85,7 @@ sudo apt-get install -y libopencv-dev python3-opencv
 
 ```
 
-###步驟 2: 建立 Python 虛擬環境 (Virtual Environment)為了避免套件衝突，強烈建議使用虛擬環境。
+### 步驟 2: 建立 Python 虛擬環境 (Virtual Environment)為了避免套件衝突，強烈建議使用虛擬環境。
 
 ```bash
 # 1. 建立專案資料夾 (如果尚未建立)
@@ -103,7 +103,7 @@ source venv/bin/activate
 
 ```
 
-###步驟 3: 安裝 Python 相依套件在虛擬環境啟動的狀態下，安裝專案所需的 Python 庫。
+### 步驟 3: 安裝 Python 相依套件在虛擬環境啟動的狀態下，安裝專案所需的 Python 庫。
 
 ```bash
 # 確保 pip 是最新的
@@ -119,7 +119,7 @@ pip install gunicorn
 
 ```
 
-###步驟 4: 安裝與設定 NgrokNgrok 用於將樹莓派的本地網頁伺服器暴露到網際網絡。
+### 步驟 4: 安裝與設定 NgrokNgrok 用於將樹莓派的本地網頁伺服器暴露到網際網絡。
 
 1. 前往 [Ngrok 官網](https://ngrok.com/) 註冊並取得 Authtoken。
 2. 依照官網指示安裝 Ngrok (針對 Linux/Raspberry Pi)。
@@ -133,7 +133,7 @@ ngrok config add-authtoken <YOUR_AUTH_TOKEN>
 
 ---
 
-##🤖 微控制器設定 (ESP32/ESP8266 Setup)使用 Arduino IDE 上傳韌體。
+## 🤖 微控制器設定 (ESP32/ESP8266 Setup)使用 Arduino IDE 上傳韌體。
 
 ###準備工作1. 在 Arduino IDE 中安裝 **ESP32** 和 **ESP8266** 的開發板支援包 (Board Manager)。
 2. 透過 **Library Manager** (庫管理員) 安裝以下必要函式庫：
@@ -145,15 +145,15 @@ ngrok config add-authtoken <YOUR_AUTH_TOKEN>
 
 
 
-###燒錄韌體請分別開啟專案中的 `.ino` 檔案進行燒錄：
+### 燒錄韌體請分別開啟專案中的 `.ino` 檔案進行燒錄：
 
-* **ESP32 (感測器端):** 使用 `ESP32_ThingSpeak_Fixed.ino`
-* **注意:** 上傳前請務必修改程式碼中的 `ThingSpeak Channel ID` 和 `Write API Key`。
+* ** ESP32 (感測器端):** 使用 `ESP32_ThingSpeak_Fixed.ino`
+* ** 注意:** 上傳前請務必修改程式碼中的 `ThingSpeak Channel ID` 和 `Write API Key`。
 
 
-* **ESP8266 (控制端):** 使用 `Esp8266_3_Relays.ino` (或其他控制馬達的程式碼)。
+* ** ESP8266 (控制端):** 使用 `Esp8266_3_Relays.ino` (或其他控制馬達的程式碼)。
 
-> **ℹ️ WiFi 設定說明 (WiFiManager):**
+> ** ℹ️ WiFi 設定說明 (WiFiManager):**
 > 首次啟動時，微控制器會建立一個無線熱點 (AP)。請用手機或電腦連接該熱點，瀏覽器會自動跳轉至設定頁面 (或手動輸入預設 IP，通常是 `192.168.4.1`)，在此輸入你家中的 WiFi SSID 和密碼。設定完成後裝置會自動重啟並連線。
 
 ---
@@ -166,7 +166,7 @@ ngrok config add-authtoken <YOUR_AUTH_TOKEN>
 
 ##▶️ 啟動系統請確保所有硬體已連接並通電。
 
-###1. 啟動 Flask 伺服器 (在樹莓派上)開啟一個新的終端機視窗，進入專案目錄並啟動虛擬環境：
+### 1. 啟動 Flask 伺服器 (在樹莓派上)開啟一個新的終端機視窗，進入專案目錄並啟動虛擬環境：
 
 ```bash
 cd ~/Fish_System
@@ -178,7 +178,7 @@ python app.py
 
 ```
 
-###2. 啟動 Ngrok 隧道開啟另一個新的終端機視窗，啟動 Ngrok 將 Port 5000 暴露出去：
+### 2. 啟動 Ngrok 隧道開啟另一個新的終端機視窗，啟動 Ngrok 將 Port 5000 暴露出去：
 
 ```bash
 # 將本地 5000 埠映射到一個隨機的公開 URL
@@ -193,17 +193,18 @@ Ngrok 啟動後，終端機介面會顯示一個 `Forwarding` 的網址 (例如 
 
 ---
 
-##❓ 疑難排解* **Python 套件安裝失敗**: 確保你已執行 `sudo apt-get update` 並且安裝了所有基礎依賴套件 (如 `build-essential`, `python3-dev`)。
-* **虛擬環境無法啟動**: 檢查 `source venv/bin/activate` 指令路徑是否正確。
-* **ESP32/8266 無法連線 WiFi**:
+## ❓ 疑難排解* **Python 套件安裝失敗**: 確保你已執行 `sudo apt-get update` 並且安裝了所有基礎依賴套件 (如 `build-essential`, `python3-dev`)。
+* ** 虛擬環境無法啟動**: 檢查 `source venv/bin/activate` 指令路徑是否正確。
+* ** ESP32/8266 無法連線 WiFi**:
 * 檢查 WiFiManager 是否成功設定了正確的 SSID 和密碼。
 * 使用序列埠監控視窗 (Serial Monitor, Baud rate 115200) 查看除錯訊息。
 
 
-* **MQTT 數據未更新**:
+* ** MQTT 數據未更新**:
 * 確保樹莓派與微控制器連接的是同一個 MQTT Broker。
 * 檢查 Topic 名稱是否一致。
 
 
 
-* **Ngrok 網址無法訪問**: Ngrok 免費版的網址每次啟動都會改變，請確認使用了最新的網址。確保 Flask 伺服器正在執行且沒有報錯。
+* ** Ngrok 網址無法訪問**: Ngrok 免費版的網址每次啟動都會改變，請確認使用了最新的網址。確保 Flask 伺服器正在執行且沒有報錯。
+
