@@ -162,7 +162,8 @@ ngrok config add-authtoken <YOUR_AUTH_TOKEN>
 
 ---
 
-## ⚙️ 系統配置###Flask 應用程式設定確保你的 Flask 主程式 (例如 `app.py`) 中設定了正確的 MQTT Broker 地址以及 ThingSpeak 相關參數。
+## ⚙️ 系統配置
+### Flask 應用程式設定確保你的 Flask 主程式 (例如 ### Flask 應用程式設定確保你的 Flask 主程式 (例如 `app.py`) 中設定了正確
 
 ### ThingSpeak 設定在 ThingSpeak 平台上建立一個 Channel，並設定對應的 Fields 來接收感測器數據 (例如 Field1: 溫度, Field2: pH, Field3: TDS 等)。
 
@@ -211,6 +212,7 @@ Ngrok 啟動後，終端機介面會顯示一個 `Forwarding` 的網址 (例如 
 
 
 * ** Ngrok 網址無法訪問**: Ngrok 免費版的網址每次啟動都會改變，請確認使用了最新的網址。確保 Flask 伺服器正在執行且沒有報錯。
+
 
 
 
