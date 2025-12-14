@@ -1,0 +1,6 @@
+paho-mqtt
+schedule
+requests
+flask
+opencv-python
+Flask-MQTT
