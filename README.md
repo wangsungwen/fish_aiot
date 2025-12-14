@@ -1,6 +1,5 @@
 # AIoT 智慧魚菜共生系統 (AIoT Fish & Veg System)這是一個整合了物聯網技術的智慧魚菜共生監控與控制系統。系統以樹莓派 (Raspberry Pi) 為中央伺服器，透過 ESP32 與 ESP8266 微控制器收集環境數據（溫度、pH 值、TDS、水位等）並控制致動器（馬達、加溫棒）。數據透過 MQTT 協定傳輸，並整合 ThingSpeak 雲端平台進行資料視覺化，最後透過 Flask 網頁介面提供即時監控與控制功能，並利用 Ngrok 實現遠端訪問。
 
----
 
 ## 📖 目錄1. [系統架構](https://www.google.com/search?q=%23%E7%B3%BB%E7%B5%B1%E6%9E%B6%E6%A7%8B)
 2. [硬體需求](https://www.google.com/search?q=%23%E7%A1%AC%E9%AB%94%E9%9C%80%E6%B1%82)
@@ -11,7 +10,6 @@
 7. [啟動系統](https://www.google.com/search?q=%23%E5%95%9F%E5%8B%95%E7%B3%BB%E7%B5%B1)
 8. [疑難排解](https://www.google.com/search?q=%23%E7%96%91%E9%9B%A3%E6%8E%92%E8%A7%A3)
 
----
 
 ## 🏗️ 系統架構```mermaid
 graph TD
@@ -42,16 +40,14 @@ graph TD
         Ngrok --> RPi
     end
 
-```
 
----
+## 🛠️ 硬體需求
+### 核心控制* **Raspberry Pi 4 Model B** (建議 4GB RAM 以上): 作為中央伺服器、MQTT Broker 及網頁主機。
 
-## 🛠️ 硬體需求###核心控制* **Raspberry Pi 4 Model B** (建議 4GB RAM 以上): 作為中央伺服器、MQTT Broker 及網頁主機。
-
-###微控制器* **ESP-32S DevKit V1**: 負責連接多種感測器並上傳數據。
+### 微控制器* **ESP-32S DevKit V1**: 負責連接多種感測器並上傳數據。
 * **NodeMCU V3 (ESP8266)**: 負責控制繼電器（馬達、加熱棒等）。
 
-###感測器與模組* **DS18B20** 防水溫度感測器。
+### 感測器與模組* **DS18B20** 防水溫度感測器。
 * **TDS 水質檢測模組** (類比訊號)。
 * **pH 酸鹼值檢測模組** (類比訊號)。
 * **水位感測器** (類比或數位)。
@@ -60,7 +56,6 @@ graph TD
 > **⚠️ 接線注意：**
 > 請務必參考專案提供的 `接線圖` 進行硬體連接。錯誤的接線可能導致元件損壞。特別注意感測器的電壓需求 (3.3V vs 5V) 以及 ESP32 的 ADC 腳位限制。
 
----
 
 ## 💻 軟體準備在開始之前，請確保您已準備好以下軟體環境：
 
@@ -69,11 +64,10 @@ graph TD
 3. **Ngrok 帳號**: 用於建立外部存取隧道。
 4. **ThingSpeak 帳號**: 用於雲端數據儲存與圖表繪製。
 
----
 
 ## 🚀 樹莓派伺服器架設 (Raspberry Pi Setup)請依序在樹莓派終端機執行以下步驟。
 
-###步驟 1: 更新系統與安裝基礎套件更新套件列表並安裝必要的系統工具、Python 3、pip 以及 OpenCV 所需的依賴庫。
+### 步驟 1: 更新系統與安裝基礎套件更新套件列表並安裝必要的系統工具、Python 3、pip 以及 OpenCV 所需的依賴庫。
 
 ```bash
 sudo apt-get update && sudo apt-get upgrade -y
@@ -135,7 +129,7 @@ ngrok config add-authtoken <YOUR_AUTH_TOKEN>
 
 ## 🤖 微控制器設定 (ESP32/ESP8266 Setup)使用 Arduino IDE 上傳韌體。
 
-###準備工作1. 在 Arduino IDE 中安裝 **ESP32** 和 **ESP8266** 的開發板支援包 (Board Manager)。
+### 準備工作1. 在 Arduino IDE 中安裝 **ESP32** 和 **ESP8266** 的開發板支援包 (Board Manager)。
 2. 透過 **Library Manager** (庫管理員) 安裝以下必要函式庫：
 * `WiFiManager` (by tzapu)
 * `PubSubClient` (by Nick O'Leary) - 用於 MQTT
@@ -158,13 +152,13 @@ ngrok config add-authtoken <YOUR_AUTH_TOKEN>
 
 ---
 
-##⚙️ 系統配置###Flask 應用程式設定確保你的 Flask 主程式 (例如 `app.py`) 中設定了正確的 MQTT Broker 地址以及 ThingSpeak 相關參數。
+## ⚙️ 系統配置###Flask 應用程式設定確保你的 Flask 主程式 (例如 `app.py`) 中設定了正確的 MQTT Broker 地址以及 ThingSpeak 相關參數。
 
-###ThingSpeak 設定在 ThingSpeak 平台上建立一個 Channel，並設定對應的 Fields 來接收感測器數據 (例如 Field1: 溫度, Field2: pH, Field3: TDS 等)。
+### ThingSpeak 設定在 ThingSpeak 平台上建立一個 Channel，並設定對應的 Fields 來接收感測器數據 (例如 Field1: 溫度, Field2: pH, Field3: TDS 等)。
 
 ---
 
-##▶️ 啟動系統請確保所有硬體已連接並通電。
+## ▶️ 啟動系統請確保所有硬體已連接並通電。
 
 ### 1. 啟動 Flask 伺服器 (在樹莓派上)開啟一個新的終端機視窗，進入專案目錄並啟動虛擬環境：
 
@@ -207,4 +201,5 @@ Ngrok 啟動後，終端機介面會顯示一個 `Forwarding` 的網址 (例如 
 
 
 * ** Ngrok 網址無法訪問**: Ngrok 免費版的網址每次啟動都會改變，請確認使用了最新的網址。確保 Flask 伺服器正在執行且沒有報錯。
+
 
