@@ -1,7 +1,11 @@
-# AIoT 智慧魚菜共生系統 (AIoT Fish & Veg System)這是一個整合了物聯網技術的智慧魚菜共生監控與控制系統。系統以樹莓派 (Raspberry Pi) 為中央伺服器，透過 ESP32 與 ESP8266 微控制器收集環境數據（溫度、pH 值、TDS、水位等）並控制致動器（馬達、加溫棒）。數據透過 MQTT 協定傳輸，並整合 ThingSpeak 雲端平台進行資料視覺化，最後透過 Flask 網頁介面提供即時監控與控制功能，並利用 Ngrok 實現遠端訪問。
+# AIoT 智慧魚菜共生系統 (AIoT Fish & Veg System)這是一個整合了物聯網技術的智慧魚菜共生監控與控制系統。
+
+系統以樹莓派 (Raspberry Pi) 為中央伺服器，透過 ESP32 與 ESP8266 微控制器收集環境數據（溫度、pH 值、TDS、水位等）並控制致動器（馬達、加溫棒）。
+數據透過 MQTT 協定傳輸，並整合 ThingSpeak 雲端平台進行資料視覺化，最後透過 Flask 網頁介面提供即時監控與控制功能，並利用 Ngrok 實現遠端訪問。
 
 
-## 📖 目錄1. [系統架構](https://www.google.com/search?q=%23%E7%B3%BB%E7%B5%B1%E6%9E%B6%E6%A7%8B)
+## 📖 目錄
+1. [系統架構](https://www.google.com/search?q=%23%E7%B3%BB%E7%B5%B1%E6%9E%B6%E6%A7%8B)
 2. [硬體需求](https://www.google.com/search?q=%23%E7%A1%AC%E9%AB%94%E9%9C%80%E6%B1%82)
 3. [軟體準備](https://www.google.com/search?q=%23%E8%BB%9F%E9%AB%94%E6%BA%96%E5%82%99)
 4. [樹莓派伺服器架設 (Raspberry Pi Setup)](https://www.google.com/search?q=%23%E6%A8%B9%E8%8E%93%E6%B4%BE%E4%BC%BA%E6%9C%8D%E5%99%A8%E6%9E%B6%E8%A8%AD-raspberry-pi-setup)
@@ -201,5 +205,6 @@ Ngrok 啟動後，終端機介面會顯示一個 `Forwarding` 的網址 (例如 
 
 
 * ** Ngrok 網址無法訪問**: Ngrok 免費版的網址每次啟動都會改變，請確認使用了最新的網址。確保 Flask 伺服器正在執行且沒有報錯。
+
 
 
