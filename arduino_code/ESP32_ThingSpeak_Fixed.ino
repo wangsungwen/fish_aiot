@@ -1,9 +1,6 @@
 /*
- * 專案：魚菜共生 AIoT - ESP32 旗艦版 (含水位防腐蝕間歇供電功能)
- * 修改紀錄：
- * 1. 新增 MQTT Log Topic 用於回報自動控制事件
- * 2. checkLogic 中加入 sendEventLog 呼叫
- * 3. [最新] 水位感測器改為間歇供電 (使用 GPIO 25 供電)
+ * 檔案名稱: ESP32_ThingSpeak_Fixed_v2.ino
+ * 功能：魚菜共生 AIoT - ESP32 旗艦版 (含 TDS 溫度補償 & 水位軟體歸零)
  */
 
 #include "ThingSpeak.h"
@@ -35,7 +32,7 @@ const float PH_R1 = 2000.0;
 const float PH_R2 = 3000.0;
 const float PH_dividerRatio = (PH_R1 + PH_R2) / PH_R2;
 
-// --- pH 校正參數 ---
+// --- pH 校正參數 (請依實際校正更新) ---
 float PH_slope = -5.70;     // 斜率 m
 float PH_intercept = 21.34; // 截距 c (Offset)
 
@@ -51,7 +48,7 @@ const int PIN_TDS = 34;         // TDS (ADC1)
 const int PIN_TURBIDITY = 35;   // 濁度 (ADC1)
 const int PIN_PH = 32;          // PH (ADC1)
 const int PIN_WATER_LEVEL = 33; // 水位訊號讀取 (Signal)
-const int PIN_WATER_POWER = 25; // [新增] 水位供電控制 (VCC) - 用於防腐蝕
+const int PIN_WATER_POWER = 25; // 水位供電控制 (VCC) - 用於防腐蝕
 const int PIN_LED = 2;          // 狀態燈
 
 // 物件初始化
@@ -80,7 +77,7 @@ const long interval = 20000; // 20秒上傳一次 ThingSpeak
 unsigned long lastMqttPub = 0;
 const long intervalMqtt = 2000; // 2秒發送一次 MQTT (即時)
 
-// --- 平滑濾波函式 (一般用) ---
+// --- 平滑濾波函式 ---
 float getSmoothedVoltage(int pin) {
   long sum = 0;
   for (int i = 0; i < samples; i++) {
@@ -95,12 +92,10 @@ float getSmoothedVoltage(int pin) {
 float readPHVoltage(int pin) {
   int buf[10], temp;
   unsigned long int avgValue = 0;
-  // 取樣 10 次
   for (int i = 0; i < 10; i++) {
     buf[i] = analogRead(pin);
     delay(10);
   }
-
   // 排序 (泡沫排序法)
   for (int i = 0; i < 9; i++) {
     for (int j = i + 1; j < 10; j++) {
@@ -111,19 +106,13 @@ float readPHVoltage(int pin) {
       }
     }
   }
-
   // 去除最大與最小各 2 個值，取中間 6 個平均
   for (int i = 2; i < 8; i++) {
     avgValue += buf[i];
   }
-
   float avgADC = (float)avgValue / 6.0;
-
-  // 換算為 ESP32 讀到的電壓
   float vPin = avgADC * (vRef / adcResolution);
-  // 還原為感測器原始輸出的電壓 (乘回分壓倍率)
   float vSensor = vPin * PH_dividerRatio;
-
   return vSensor;
 }
 
@@ -131,7 +120,6 @@ float readPHVoltage(int pin) {
 void sendEventLog(String type, String message) {
   if (!client.connected())
     return;
-  // 建立 JSON: {"event_type": "AUTO_CONTROL", "message": "內容"}
   String json =
       "{\"event_type\":\"" + type + "\", \"message\":\"" + message + "\"}";
   client.publish(mqttTopicLog, json.c_str());
@@ -148,7 +136,6 @@ void callback(char *topic, byte *payload, unsigned int length) {
   Serial.print("]: ");
   Serial.println(msg);
 
-  // 啟動手動模式保護
   manual_mode = true;
   manual_timer = millis();
   Serial.println(">>> 進入手動模式 (暫停自動控制 60秒)");
@@ -182,21 +169,42 @@ void readSensors() {
   sensors.requestTemperatures();
   val_temp = sensors.getTempCByIndex(0);
   if (val_temp == -127.00) {
-    Serial.println("溫度感測器錯誤!");
+    Serial.println("溫度感測器錯誤! (請檢查 4.7k 電阻)");
     val_temp = 25.0; // 安全預設值
   }
 
-  // 2. [修改] 讀取水位 - 間歇供電邏輯 (防腐蝕)
+  // 2. [修改] 讀取水位 - 間歇供電 + 軟體歸零
   digitalWrite(PIN_WATER_POWER, HIGH);     // 供電 ON
   delay(10);                               // 等待穩定
   val_level = analogRead(PIN_WATER_LEVEL); // 讀取數據
-  digitalWrite(PIN_WATER_POWER, LOW);      // 供電 OFF (重要!)
+  digitalWrite(PIN_WATER_POWER, LOW);      // 供電 OFF (防腐蝕)
 
-  // 3. 讀取 TDS
-  float raw_tds = analogRead(PIN_TDS);
-  val_tds = (raw_tds * 3.3 / 4095.0) * 100;
+  // [新增] 軟體歸零：過濾懸空雜訊 (若小於 200 視為 0)
+  if (val_level < 200) {
+    val_level = 0;
+  }
 
-  // 4. 讀取 pH (含溫度補償邏輯可在此擴充，目前使用固定公式)
+  // 3. [修改] 讀取 TDS (加入溫度補償)
+  float raw_tds_voltage = analogRead(PIN_TDS) * 3.3 / 4095.0;
+
+  // 溫度補償係數: 基準溫 25°C，每變化 1°C 補償 2%
+  float compensationCoefficient = 1.0 + 0.02 * (val_temp - 25.0);
+  // 避免除以 0 或負數 (雖然物理上不太可能)
+  if (compensationCoefficient <= 0)
+    compensationCoefficient = 1.0;
+
+  float compensationVoltage = raw_tds_voltage / compensationCoefficient;
+
+  // 將補償後的電壓轉換為 TDS ppm (通用公式)
+  val_tds = (133.42 * compensationVoltage * compensationVoltage *
+                 compensationVoltage -
+             255.86 * compensationVoltage * compensationVoltage +
+             857.39 * compensationVoltage) *
+            0.5;
+  if (val_tds < 0)
+    val_tds = 0;
+
+  // 4. 讀取 pH
   float voltagePH = readPHVoltage(PIN_PH);
   val_ph = (PH_slope * voltagePH) + PH_intercept;
 
@@ -206,6 +214,7 @@ void readSensors() {
   val_turb = sensorVoltage;
 
   float ntu;
+  // 依據您的感測器特性調整閾值
   if (sensorVoltage < 2.5) {
     ntu = 3000.0;
   } else if (sensorVoltage > 4.2) {
@@ -214,23 +223,20 @@ void readSensors() {
     ntu = -1120.4 * (sensorVoltage * sensorVoltage) + 5742.3 * sensorVoltage -
           4353.8;
   }
-
   if (ntu < 0)
     ntu = 0;
   val_ntu = (int)ntu;
 
-  Serial.printf("[Sensors] T:%.1f, PH:%.1f, NTU:%d, Level:%.0f\n", val_temp,
-                val_ph, val_ntu, val_level);
+  Serial.printf("[Sensors] T:%.1f, PH:%.1f, NTU:%d, Level:%.0f, TDS:%.0f\n",
+                val_temp, val_ph, val_ntu, val_level, val_tds);
 }
 
-// 邏輯控制 (含日誌回報)
+// 邏輯控制
 void checkLogic() {
-  // 手動模式檢查
   if (manual_mode) {
     if (millis() - manual_timer > manual_timeout) {
       manual_mode = false;
       Serial.println("<<< 手動模式結束，恢復自動控制");
-      // sendEventLog("INFO", "恢復自動控制模式");
     } else {
       return;
     }
@@ -256,7 +262,6 @@ void checkLogic() {
   // 2. 過濾馬達
   bool pump_needed =
       (val_ntu >= 3000) || (val_tds > 200) || (val_ph < 6.5) || (val_ph > 8.5);
-
   if (pump_needed) {
     if (!pump_status) {
       client.publish(mqttTopicPump, "ON");
@@ -281,11 +286,9 @@ void checkLogic() {
   }
 }
 
-// 打包並發送 JSON 數據
 void sendMQTTData() {
   if (!client.connected())
     return;
-
   String json = "{";
   json += "\"temp\":" + String(val_temp, 1) + ",";
   json += "\"ph\":" + String(val_ph, 2) + ",";
@@ -294,21 +297,17 @@ void sendMQTTData() {
   json += "\"ntu\":" + String(val_ntu) + ",";
   json += "\"level\":" + String(val_level, 0);
   json += "}";
-
   client.publish(mqttTopicSensors, json.c_str());
 }
 
 void setup() {
   Serial.begin(115200);
-
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
 
   pinMode(PIN_WATER_LEVEL, INPUT);
-
-  // [新增] 設定水位供電腳位
   pinMode(PIN_WATER_POWER, OUTPUT);
-  digitalWrite(PIN_WATER_POWER, LOW); // 預設關閉以防腐蝕
+  digitalWrite(PIN_WATER_POWER, LOW); // 預設關閉
 
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_TDS, INPUT);
@@ -336,7 +335,6 @@ void loop() {
 
   unsigned long now = millis();
 
-  // MQTT 即時更新
   if (now - lastMqttPub > intervalMqtt) {
     lastMqttPub = now;
     readSensors();
@@ -344,7 +342,6 @@ void loop() {
     sendMQTTData();
   }
 
-  // ThingSpeak 上傳
   if (now - lastMsg > interval) {
     lastMsg = now;
     ThingSpeak.setField(1, val_temp);
@@ -352,7 +349,6 @@ void loop() {
     ThingSpeak.setField(3, val_ph);
     ThingSpeak.setField(4, val_turb);
     ThingSpeak.setField(5, val_level);
-
     int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
     if (x == 200) {
       digitalWrite(PIN_LED, HIGH);
