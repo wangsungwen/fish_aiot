@@ -109,7 +109,7 @@ python app.py
 Plaintext
 
 Fish_System/
-├── app.py                      # 核心主程式 (Flask + ThingSpeak Polling + Telegram + MQTT)
+├── app_thingspeak.py                      # 核心主程式 (Flask + ThingSpeak Polling + Telegram + MQTT)
 ├── fish_system.db              # SQLite 資料庫 (自動生成，儲存歷史紀錄)
 ├── requirements.txt            # Python 依賴清單
 ├── README.md                   # 本說明檔
@@ -118,8 +118,9 @@ Fish_System/
 ├── static/
 │   └── css/                    # 網頁樣式
 └── arduino_code/               # 硬體韌體原始碼
-    ├── Esp32_Sensors_Complete.ino   # [V2.5] 上傳數據至 ThingSpeak
-    └── Esp8266_Relay.ino            # [V2.5] 接收 MQTT 指令控制馬達
+    ├── Esp8266_Motor_Fixed.ino      # [V2.5] 清洗移動平台 減速馬達
+    ├── ESP32_ThingSpeak_Fixed.ino   # [V2.5] 上傳數據至 ThingSpeak
+    └── Esp8266_3_Relays.ino            # [V2.5] 接收 MQTT 指令控制馬達
 ⚠️ 常見問題 (FAQ)
 Q1: 為什麼網頁上的數據更新有延遲？
 
@@ -132,5 +133,6 @@ Q2: 為什麼 Serial Monitor 顯示 Error -401 或 HTTP 0？
 Q3: 為什麼水位低了但我沒收到 Telegram 通知？
 
 系統設有 30 分鐘冷卻時間。若 30 分鐘內已經發送過一次水位警報，為了避免您的手機被訊息轟炸，系統會暫時阻擋重複的通知，直到時間結束。重啟 app.py 可以重置此計時器。
+
 
 https://api.thingspeak.com/update?api_key=X7R6GEYXQDDMWEZP&field1=22.0&field2=900&field3=7.2&field4=3.2&field5=3600
